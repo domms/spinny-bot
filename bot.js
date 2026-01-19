@@ -262,14 +262,15 @@ function sleep(ms) {
 
 /**
  * Create an animated GIF that spins and stops on the winner
+ * OPTIMIZED: Reduced canvas size, frames, and GIF quality for lower cloud costs
  */
 async function createSpinningAnimation(names, winnerIndex, channel) {
     if (!names || names.length === 0) return null;
-    const size = 800;
+    const size = 600; // OPTIMIZED: Reduced from 800 (44% smaller file, faster encoding)
 
     const totalRotations = FIXED_ROTATIONS; // deterministic spins
-    const totalFrames = 60;
-    const slowDownFrames = 20;
+    const totalFrames = 40; // OPTIMIZED: Reduced from 60 (33% fewer calculations)
+    const slowDownFrames = 15; // OPTIMIZED: Reduced from 20
 
     const anglePerSegment = (2 * Math.PI) / names.length;
     // mid-angle of the winner segment (at rotation=0)
@@ -284,7 +285,8 @@ async function createSpinningAnimation(names, winnerIndex, channel) {
 
     encoder.start();
     encoder.setRepeat(0);
-    encoder.setQuality(10);
+    encoder.setQuality(15); // OPTIMIZED: Changed from 10 (higher = more compression, smaller file)
+    encoder.setDelay(30); // OPTIMIZED: Set default delay to reduce per-frame overhead
 
     function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
 
@@ -293,19 +295,20 @@ async function createSpinningAnimation(names, winnerIndex, channel) {
         const eased = easeOutCubic(progress);
         const angle = eased * finalRotationRad;
 
-        // draw wheel rotated by `angle`
-        const canvas = createWheelImage(names, null, size, angle);
-        const ctx = canvas.getContext('2d');
-
-        // On last frames highlight the winner (draw again with highlight)
-        if (frame >= totalFrames - 5) {
-            const highlightCanvas = createWheelImage(names, winnerIndex, size, angle);
-            encoder.setDelay(frame < totalFrames - slowDownFrames ? 30 : 50 + (frame - (totalFrames - slowDownFrames)) * 15);
-            encoder.addFrame(highlightCanvas.getContext('2d'));
+        // OPTIMIZED: Calculate delay once per frame instead of twice
+        let frameDelay;
+        if (frame < totalFrames - slowDownFrames) {
+            frameDelay = 30;
         } else {
-            encoder.setDelay(frame < totalFrames - slowDownFrames ? 30 : 50 + (frame - (totalFrames - slowDownFrames)) * 15);
-            encoder.addFrame(ctx);
+            frameDelay = 50 + (frame - (totalFrames - slowDownFrames)) * 15;
         }
+        encoder.setDelay(frameDelay);
+
+        // OPTIMIZED: Single canvas draw per frame (highlight integrated)
+        const isHighlight = frame >= totalFrames - 5;
+        const canvas = createWheelImage(names, isHighlight ? winnerIndex : null, size, angle);
+        const ctx = canvas.getContext('2d');
+        encoder.addFrame(ctx);
     }
 
     encoder.finish();
