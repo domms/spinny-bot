@@ -1,0 +1,10 @@
+node_modules/
+.env
+*.log
+*.png
+*.gif
+wheel_images/
+test_output/
+.DS_Store
+*.pem
+

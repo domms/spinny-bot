@@ -1,0 +1,23 @@
+{
+  "name": "spinny",
+  "version": "1.0.0",
+  "description": "Discord wheel spinner bot",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "test": "node test-wheel.js"
+  },
+  "keywords": ["discord", "bot", "wheel", "spinner"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1",
+    "canvas": "^2.11.2",
+    "gifencoder": "^2.0.1",
+    "puppeteer": "24.33.0",
+    "pngjs": "^7.0.0"
+  }
+}
+
+
